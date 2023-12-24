@@ -1,0 +1,50 @@
+version: '3.9'
+
+services:
+
+  app:
+    build: .
+    env_file: 
+      - .env
+    environment:
+      DB_HOST: "db"
+    depends_on:
+      migrations:
+        condition: service_completed_successfully
+
+  migrations:
+    build:
+      context: .
+      dockerfile: Dockerfile.migrations
+    env_file:
+      - .env
+    environment:
+      DB_HOST: "db"
+    volumes:
+      - ./migrations:/app/migrations
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: 'postgres:16.1'
+    ports:
+      - 5431:5431
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+      PGPORT: "5431"
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test:
+        ["CMD", "pg_isready", "-U", "${DB_USER}", "-d", "${DB_NAME}", "-h", "localhost", "-p", "5431"]
+      timeout: 5s
+      interval: 5s
+      retries: 10
+
+volumes:
+  db_data:
+    name: db_data

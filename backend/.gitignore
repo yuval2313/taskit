@@ -1,0 +1,18 @@
+# Python
+.venv/
+*.pyc
+__pycache__/
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Compiled
+dist/
+build/
+*.egg-info/
+
+# Config
+.env
+!.env.example
