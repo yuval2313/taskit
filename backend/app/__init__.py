@@ -20,6 +20,13 @@ def create_app():
     db_name = getenv('DB_NAME')
     db_host = getenv('DB_HOST')
     db_port = getenv('DB_PORT')
+    log_level = getenv('LOG_LEVEL', "INFO")
+
+    try:
+        app.logger.setLevel(log_level)
+    except ValueError as ex:
+        app.logger.error(
+            "Log level \"%s\" is invalid! Logging may not work as expected!", log_level, exc_info=ex)
 
     db_uri = f"postgresql+psycopg2://{db_user}:{db_pass}@{db_host}:{db_port}/{db_name}"
     app.config["SQLALCHEMY_DATABASE_URI"] = db_uri

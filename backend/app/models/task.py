@@ -1,7 +1,8 @@
 from datetime import datetime
+from marshmallow import Schema, fields, validate
+from flask import current_app as app
 from app import db
 from app.errors.http import CustomHTTPException
-from marshmallow import Schema, fields, validate
 
 
 # Database Model
@@ -61,5 +62,6 @@ def validate_task_req(data: dict):
 
     errors = schema.validate(data)
     if errors:
+        app.logger.warning("Invalid task in request body, raising exception")
         raise CustomHTTPException(
             description="Validation Error", code=400, payload=errors)
