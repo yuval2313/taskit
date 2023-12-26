@@ -8,6 +8,11 @@ services:
       - .env
     environment:
       DB_HOST: "db"
+    # for development purposes!!
+    volumes:
+      - .:/app
+    ports:
+      - 5000:5000
     depends_on:
       migrations:
         condition: service_completed_successfully
@@ -29,18 +34,18 @@ services:
   db:
     image: 'postgres:16.1'
     ports:
-      - 5431:5431
+      - ${DB_PORT}:${DB_PORT}
     environment:
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_DB: ${DB_NAME}
-      PGPORT: "5431"
+      PGPORT: "${DB_PORT}"
       PGDATA: /var/lib/postgresql/data/pgdata
     volumes:
       - db_data:/var/lib/postgresql/data
     healthcheck:
       test:
-        ["CMD", "pg_isready", "-U", "${DB_USER}", "-d", "${DB_NAME}", "-h", "localhost", "-p", "5431"]
+        ["CMD", "pg_isready", "-U", "${DB_USER}", "-d", "${DB_NAME}", "-h", "localhost", "-p", "${DB_PORT}"]
       timeout: 5s
       interval: 5s
       retries: 10

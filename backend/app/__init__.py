@@ -19,14 +19,16 @@ def create_app():
     db_pass = getenv('DB_PASSWORD')
     db_name = getenv('DB_NAME')
     db_host = getenv('DB_HOST')
+    db_port = getenv('DB_PORT')
 
-    db_uri = f"postgresql+psycopg2://{db_user}:{db_pass}@{db_host}:5431/{db_name}"
+    db_uri = f"postgresql+psycopg2://{db_user}:{db_pass}@{db_host}:{db_port}/{db_name}"
     app.config["SQLALCHEMY_DATABASE_URI"] = db_uri
 
     db.init_app(app)
     migrate.init_app(app, db)
 
     with app.app_context():
-        from . import routes
+        from app.routes import error_handlers
+        from app.routes import tasks
 
     return app
