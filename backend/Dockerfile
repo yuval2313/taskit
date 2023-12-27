@@ -25,5 +25,6 @@ COPY . .
 RUN chmod +x ./app.py
 
 # Run the application
-ENTRYPOINT ["python3", "app.py"]
+ENTRYPOINT ["python3"]
+CMD ["app.py"]
 

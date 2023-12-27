@@ -18,9 +18,8 @@ services:
         condition: service_completed_successfully
 
   migrations:
-    build:
-      context: .
-      dockerfile: Dockerfile.migrations
+    build: .
+    command: ["-m", "flask", "db", "upgrade"]
     env_file:
       - .env
     environment:
