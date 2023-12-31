@@ -22,9 +22,9 @@ ENV PATH="/.venv/bin:$PATH"
 
 # Install application into container
 COPY . .
-RUN chmod +x ./app.py
+RUN chmod +x ./init.py
 
 # Run the application
 ENTRYPOINT ["python3"]
-CMD ["app.py"]
+CMD ["init.py"]
 

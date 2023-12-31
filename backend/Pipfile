@@ -11,6 +11,8 @@ flask-migrate = "~=4.0"
 psycopg2-binary = "~=2.9"
 marshmallow = "~=3.20"
 werkzeug = "~=3.0"
+flask-cors = "~=3.0.10"
+gunicorn = "~=21.0.1"
 
 [dev-packages]
 
@@ -19,5 +21,5 @@ python_version = "3.10"
 python_full_version = "3.10.12"
 
 [scripts]
-start = "python3 app.py"
+start = "python3 init.py"
 migrate = "flask db upgrade"

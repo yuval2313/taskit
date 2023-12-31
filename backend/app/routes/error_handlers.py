@@ -1,21 +1,21 @@
 from flask import jsonify
 from flask import current_app as app
 from sqlalchemy.exc import SQLAlchemyError
-from werkzeug.exceptions import HTTPException
+# from werkzeug.exceptions import HTTPException
 from app.errors.http import CustomHTTPException
 
 
-@app.errorhandler(HTTPException)
-def handle_exception(ex: HTTPException):
-    app.logger.warning(
-        "Handling a default http exception - description: %s, code: %s", ex.description, ex.code)
+# @app.errorhandler(HTTPException)
+# def handle_exception(ex: HTTPException):
+#     app.logger.warning(
+#         "Handling a default http exception - description: %s, code: %s", ex.description, ex.code)
 
-    response = {
-        "description": ex.description,
-        "code": ex.code,
-    }
+#     response = {
+#         "description": ex.description,
+#         "code": ex.code,
+#     }
 
-    return jsonify(response), ex.code
+#     return jsonify(response), ex.code
 
 
 @app.errorhandler(CustomHTTPException)

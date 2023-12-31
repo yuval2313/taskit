@@ -13,6 +13,10 @@ dist/
 build/
 *.egg-info/
 
+# React build
+static/
+templates/
+
 # Config
 .env
 !.env.example

@@ -4,18 +4,18 @@ from app.models.task import validate_task_req
 from app.services import tasks_service
 
 
-@app.get("/tasks")
+@app.get("/api/tasks")
 def get_tasks():
-    app.logger.info("Handling GET /tasks request")
+    app.logger.info("Handling GET /api/tasks request")
     tasks = tasks_service.select_tasks()
 
     app.logger.info("Returning tasks in response")
     return jsonify([task.to_dict() for task in tasks])
 
 
-@app.get("/tasks/<int:task_id>")
+@app.get("/api/tasks/<int:task_id>")
 def get_task_by_id(task_id: int):
-    app.logger.info("Handling GET /tasks/<id> request")
+    app.logger.info("Handling GET /api/tasks/<id> request")
 
     task = tasks_service.select_task_by_id(task_id)
 
@@ -23,9 +23,9 @@ def get_task_by_id(task_id: int):
     return jsonify(task.to_dict())
 
 
-@app.post("/tasks")
+@app.post("/api/tasks")
 def create_task():
-    app.logger.info("Handling POST /tasks request")
+    app.logger.info("Handling POST /api/tasks request")
 
     data: dict = request.get_json()
 
@@ -38,9 +38,9 @@ def create_task():
     return jsonify(task.to_dict()), 201
 
 
-@app.put("/tasks/<int:task_id>")
+@app.put("/api/tasks/<int:task_id>")
 def update_task(task_id: int):
-    app.logger.info("Handling PUT /tasks/<id> request")
+    app.logger.info("Handling PUT /api/tasks/<id> request")
     data: dict = request.get_json()
 
     app.logger.info("Validating request body")
@@ -52,9 +52,9 @@ def update_task(task_id: int):
     return jsonify(task.to_dict())
 
 
-@app.delete("/tasks/<int:task_id>")
+@app.delete("/api/tasks/<int:task_id>")
 def delete_task(task_id):
-    app.logger.info("Handling DELETE /tasks/<id> request")
+    app.logger.info("Handling DELETE /api/tasks/<id> request")
 
     task = tasks_service.delete_task(task_id)
 

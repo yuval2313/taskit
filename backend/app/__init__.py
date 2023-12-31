@@ -3,6 +3,7 @@ from dotenv import load_dotenv
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
+from flask_cors import CORS
 
 db = SQLAlchemy()
 migrate = Migrate()
@@ -14,6 +15,7 @@ def create_app():
     if getenv("FLASK_ENV") != "production":
         load_dotenv()
         app.config['DEBUG'] = True
+        CORS(app)
 
     db_user = getenv('DB_USER')
     db_pass = getenv('DB_PASSWORD')
@@ -36,6 +38,7 @@ def create_app():
 
     with app.app_context():
         from app.routes import error_handlers
+        from app.routes import index
         from app.routes import tasks
 
     return app
