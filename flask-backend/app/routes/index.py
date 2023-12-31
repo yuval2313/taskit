@@ -1,4 +1,4 @@
-from flask import render_template, redirect
+from flask import redirect
 from flask import current_app as app
 
 
@@ -9,4 +9,4 @@ def home():
 
 @app.route("/tasks")
 def serve_index():
-    return render_template('index.html')
+    return app.send_static_file('index.html')

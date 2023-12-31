@@ -8,6 +8,8 @@ if __name__ == "__main__":
     if getenv("FLASK_ENV") == "production":
         # Use Gunicorn for production
         gunicorn_cmd = [
+            "python3",
+            "-m",
             "gunicorn",
             "--bind", f"0.0.0.0:{getenv('PORT', '5000')}",
             "--workers", "4",  # Adjust the number of workers as needed

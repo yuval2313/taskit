@@ -3,6 +3,10 @@
 *.pyc
 __pycache__/
 
+# Node
+node_modules/
+npm-debug.log*
+
 # Testing
 .pytest_cache/
 .coverage
@@ -18,5 +22,5 @@ static/
 templates/
 
 # Config
-.env
+.env*
 !.env.example

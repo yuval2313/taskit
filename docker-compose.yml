@@ -1,0 +1,80 @@
+version: "3.9"
+
+services:
+  nginx:
+    image: nginx:1.24-alpine
+    ports:
+      - "8080:80"
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d
+      - static_files:/app/static
+    depends_on:
+      app:
+        condition: service_started
+
+  app:
+    build: .
+    environment:
+      FLASK_ENV: "production"
+      REACT_APP_API_URL: "http://app:5000"
+      DB_HOST: "db"
+      DB_USER: "dbuser"
+      DB_PASSWORD: "dbpass"
+      DB_NAME: "taskit"
+      DB_PORT: 5431
+      PORT: 5000
+    volumes:
+      - static_files:/app/app/static
+    depends_on:
+      migrations:
+        condition: service_completed_successfully
+
+  migrations:
+    build: .
+    command: ["-m", "flask", "db", "upgrade"]
+    environment:
+      DB_HOST: "db"
+      DB_USER: "dbuser"
+      DB_PASSWORD: "dbpass"
+      DB_NAME: "taskit"
+      DB_PORT: 5431
+      PORT: 5000
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: "postgres:16.1"
+    environment:
+      POSTGRES_USER: dbuser
+      POSTGRES_PASSWORD: dbpass
+      POSTGRES_DB: taskit
+      PGPORT: 5431
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    ports:
+      - 5431:5431
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "pg_isready",
+          "-U",
+          "dbuser",
+          "-d",
+          "taskit",
+          "-h",
+          "localhost",
+          "-p",
+          "5431",
+        ]
+      timeout: 5s
+      interval: 5s
+      retries: 10
+
+volumes:
+  db_data:
+    name: db_data
+  static_files:
+    name: static_files

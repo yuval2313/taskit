@@ -1,0 +1,33 @@
+# Python
+**/.venv/
+**/*.pyc
+**/__pycache__/
+
+# Node
+**/node_modules
+**/npm-debug.log*
+
+# Testing
+**/.pytest_cache/
+**/.coverage
+**/htmlcov/
+
+# Compiled
+**/dist/
+**/build/
+
+# React build
+flask-backend/static/
+flask-backend/templates/
+
+# Config
+**/.env*
+
+# Docker
+.dockerignore
+Dockerfile*
+docker-compose*
+
+# Git
+.git
+**/.gitignore
