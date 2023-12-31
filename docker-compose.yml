@@ -3,6 +3,8 @@ version: "3.9"
 services:
   nginx:
     image: nginx:1.24-alpine
+    networks:
+      - frontend_net
     ports:
       - "8080:80"
     volumes:
@@ -14,6 +16,9 @@ services:
 
   app:
     build: .
+    networks:
+      - frontend_net
+      - backend_net
     environment:
       FLASK_ENV: "production"
       REACT_APP_API_URL: "http://app:5000"
@@ -31,6 +36,8 @@ services:
 
   migrations:
     build: .
+    networks:
+      - backend_net
     command: ["-m", "flask", "db", "upgrade"]
     environment:
       DB_HOST: "db"
@@ -45,6 +52,8 @@ services:
 
   db:
     image: "postgres:16.1"
+    networks:
+      - backend_net
     environment:
       POSTGRES_USER: dbuser
       POSTGRES_PASSWORD: dbpass
@@ -72,6 +81,10 @@ services:
       timeout: 5s
       interval: 5s
       retries: 10
+
+networks:
+  frontend_net:
+  backend_net:
 
 volumes:
   db_data:
