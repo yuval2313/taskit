@@ -38,6 +38,7 @@ def create_app():
 
     with app.app_context():
         from app.routes import error_handlers
+        from app.routes import health
         from app.routes import index
         from app.routes import tasks
 
