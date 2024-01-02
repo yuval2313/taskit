@@ -2,6 +2,7 @@ version: "3.9"
 
 services:
   nginx:
+    hostname: "${NGINX_HOST:-nginx}"
     image: nginx:1.24-alpine
     networks:
       - nginx_net
