@@ -4,9 +4,10 @@ services:
   nginx:
     image: nginx:1.24-alpine
     networks:
+      - nginx_net
       - frontend_net
     ports:
-      - "8080:80"
+      - "${NGINX_PORT:-80}:80"
     volumes:
       - ./nginx/conf.d:/etc/nginx/conf.d
       - static_files:/app/static
@@ -16,17 +17,17 @@ services:
 
   app:
     build: .
+    image: "${DOCKER_IMG}"
     networks:
       - frontend_net
       - backend_net
     environment:
       FLASK_ENV: "production"
-      REACT_APP_API_URL: "http://app:5000"
       DB_HOST: "db"
-      DB_USER: "dbuser"
-      DB_PASSWORD: "dbpass"
-      DB_NAME: "taskit"
-      DB_PORT: 5431
+      DB_USER: "${DB_USER:-dbuser}"
+      DB_PASSWORD: "${DB_PASSWORD:-dbpass}"
+      DB_NAME: "${DB_NAME:-taskit}"
+      DB_PORT: "${DB_PORT:-5431}"
       PORT: 5000
     volumes:
       - static_files:/app/app/static
@@ -34,22 +35,32 @@ services:
       migrations:
         condition: service_completed_successfully
     healthcheck:
-      test: ["CMD", "wget", "--spider", "--quiet", "--tries=1", "--timeout=10", "http://localhost:5000/health"]
+      test:
+        [
+          "CMD",
+          "wget",
+          "--spider",
+          "--quiet",
+          "--tries=1",
+          "--timeout=10",
+          "http://localhost:5000/health",
+        ]
       interval: 5s
       timeout: 5s
       retries: 10
 
   migrations:
     build: .
+    image: "${DOCKER_IMG}"
     networks:
       - backend_net
     command: ["-m", "flask", "db", "upgrade"]
     environment:
       DB_HOST: "db"
-      DB_USER: "dbuser"
-      DB_PASSWORD: "dbpass"
-      DB_NAME: "taskit"
-      DB_PORT: 5431
+      DB_USER: "${DB_USER:-dbuser}"
+      DB_PASSWORD: "${DB_PASSWORD:-dbpass}"
+      DB_NAME: "${DB_NAME:-taskit}"
+      DB_PORT: "${DB_PORT:-5431}"
       PORT: 5000
     depends_on:
       db:
@@ -60,34 +71,34 @@ services:
     networks:
       - backend_net
     environment:
-      POSTGRES_USER: dbuser
-      POSTGRES_PASSWORD: dbpass
-      POSTGRES_DB: taskit
-      PGPORT: 5431
+      POSTGRES_USER: "${DB_USER:-dbuser}"
+      POSTGRES_PASSWORD: "${DB_PASSWORD:-dbpass}"
+      POSTGRES_DB: "${DB_NAME:-taskit}"
+      PGPORT: "${DB_PORT:-5431}"
       PGDATA: /var/lib/postgresql/data/pgdata
     volumes:
       - db_data:/var/lib/postgresql/data
-    ports:
-      - 5431:5431
     healthcheck:
       test:
         [
           "CMD",
           "pg_isready",
           "-U",
-          "dbuser",
+          "${DB_USER:-dbuser}",
           "-d",
-          "taskit",
+          "${DB_NAME:-taskit}",
           "-h",
           "localhost",
           "-p",
-          "5431",
+          "${DB_PORT:-5431}",
         ]
       timeout: 5s
       interval: 5s
       retries: 10
 
 networks:
+  nginx_net:
+    name: "${NGINX_NET}"
   frontend_net:
   backend_net:
 
