@@ -40,9 +40,8 @@ pipeline {
                 sh """
                     export DOCKER_IMG=${LOCAL_IMG_TAG}
                     export NGINX_NET=${TEST_NET}
+                    docker compose up -d
                 """
-
-                sh 'docker compose up'
             }
         }
 
@@ -52,7 +51,7 @@ pipeline {
                 retry(20) {
                     sleep(time: 3, unit: 'SECONDS')
                     sh """
-                        docker run --rm --network "${TEST_NET}" \
+                        docker run --rm --network ${TEST_NET} \
                             docker.io/curlimages/curl:latest \
                             -fsSLI http://nginx:80/health --max-time 1
                     """
@@ -88,6 +87,8 @@ pipeline {
     post {
         always {
             sh """
+                export DOCKER_IMG=${LOCAL_IMG_TAG}
+                export NGINX_NET=${TEST_NET}
                 docker compose down -v
                 docker rmi ${LOCAL_IMG_TAG}
             """
