@@ -2,15 +2,14 @@ version: "3.9"
 
 services:
   nginx:
-    hostname: "${NGINX_HOST:-nginx}"
-    image: nginx:1.24-alpine
+    build:
+      context: ./nginx/
     networks:
       - nginx_net
       - frontend_net
     ports:
       - "${NGINX_PORT:-80}:80"
     volumes:
-      - ./nginx/conf.d:/etc/nginx/conf.d
       - static_files:/app/static
     depends_on:
       app:
