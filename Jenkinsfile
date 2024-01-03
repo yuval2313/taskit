@@ -12,7 +12,7 @@ pipeline {
 
     environment {
         // ECR
-        REMOTE_REGISTRY = "644435390668.dkr.ecr.eu-central-1.amazonaws.com/taskit-test"
+        REMOTE_REGISTRY = '644435390668.dkr.ecr.eu-central-1.amazonaws.com/taskit-test'
         REMOTE_IMG_TAG = "${REMOTE_REGISTRY}:${BUILD_NUMBER}"
         REMOTE_IMG_LTS_TAG = "${REMOTE_REGISTRY}:latest"
 
@@ -30,29 +30,41 @@ pipeline {
             }
         }
 
-        stage('Run') {
-            steps {
-                echo 'Running docker compose...'
+        stage('E2E') {
+            stages {
+                stage('Run') {
+                    steps {
+                        echo 'Running docker compose...'
 
+                        sh """
+                            export DOCKER_IMG=${LOCAL_IMG_TAG}
+                            export NGINX_NET=${TEST_NET}
+                            docker compose up -d
+                        """
+                    }
+                }
+
+                stage('Test') {
+                    steps {
+                        echo 'Running health check ...'
+                        retry(20) {
+                            sleep(time: 3, unit: 'SECONDS')
+                            sh """
+                                docker run --rm --network ${TEST_NET} \
+                                    docker.io/curlimages/curl:latest \
+                                    -fsSLI http://nginx:80/health --max-time 1
+                            """
+                        }
+                    }
+                }
+            }
+
+            post {
                 sh """
                     export DOCKER_IMG=${LOCAL_IMG_TAG}
                     export NGINX_NET=${TEST_NET}
-                    docker compose up -d
+                    docker compose down -v
                 """
-            }
-        }
-
-        stage('Test') {
-            steps {
-                echo 'Running health check ...'
-                retry(20) {
-                    sleep(time: 3, unit: 'SECONDS')
-                    sh """
-                        docker run --rm --network ${TEST_NET} \
-                            docker.io/curlimages/curl:latest \
-                            -fsSLI http://nginx:80/health --max-time 1
-                    """
-                }
             }
         }
 
@@ -78,20 +90,20 @@ pipeline {
                     docker push ${REMOTE_IMG_LTS_TAG}
                 """
             }
+
+            post {
+                sh """
+                    docker rmi ${LOCAL_IMG_TAG}
+                    docker rmi "${REMOTE_IMG_TAG}"
+                    docker rmi "${REMOTE_IMG_LTS_TAG}"
+                    docker logout ${REMOTE_REGISTRY}
+                """
+            }
         }
     }
 
     post {
         always {
-            sh """
-                export DOCKER_IMG=${LOCAL_IMG_TAG}
-                export NGINX_NET=${TEST_NET}
-                docker compose down -v
-                docker rmi ${LOCAL_IMG_TAG}
-                docker rmi "${REMOTE_IMG_TAG}"
-                docker rmi "${REMOTE_IMG_LTS_TAG}"
-                docker logout "${REGISTRY}"
-            """
             cleanWs()
         }
     }
