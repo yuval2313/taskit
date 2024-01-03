@@ -60,11 +60,13 @@ pipeline {
             }
 
             post {
-                sh """
-                    export DOCKER_IMG=${LOCAL_IMG_TAG}
-                    export NGINX_NET=${TEST_NET}
-                    docker compose down -v
-                """
+                always {
+                    sh """
+                        export DOCKER_IMG=${LOCAL_IMG_TAG}
+                        export NGINX_NET=${TEST_NET}
+                        docker compose down -v
+                    """
+                }
             }
         }
 
@@ -92,12 +94,14 @@ pipeline {
             }
 
             post {
-                sh """
-                    docker rmi ${LOCAL_IMG_TAG}
-                    docker rmi "${REMOTE_IMG_TAG}"
-                    docker rmi "${REMOTE_IMG_LTS_TAG}"
-                    docker logout ${REMOTE_REGISTRY}
-                """
+                always {
+                    sh """
+                        docker rmi ${LOCAL_IMG_TAG}
+                        docker rmi "${REMOTE_IMG_TAG}"
+                        docker rmi "${REMOTE_IMG_LTS_TAG}"
+                        docker logout ${REMOTE_REGISTRY}
+                    """
+                }
             }
         }
     }
