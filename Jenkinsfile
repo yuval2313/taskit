@@ -11,13 +11,10 @@ pipeline {
     }
 
     environment {
-        // TODO: Registry config
-        // REGISTRY =
-        // REGISTRY_REPO =
-
-        // TODO: remote image tags
-        // REMOTE_IMG_TAG = "${REGISTRY}/${REGISTRY_REPO}/taskit:${BUILD_NUMBER}"
-        // REMOTE_IMG_LTS_TAG = "${REGISTRY}/${REGISTRY_REPO}/taskit:latest"
+        // ECR
+        REMOTE_REGISTRY = "644435390668.dkr.ecr.eu-central-1.amazonaws.com/taskit-test"
+        REMOTE_IMG_TAG = "${REMOTE_REGISTRY}:${BUILD_NUMBER}"
+        REMOTE_IMG_LTS_TAG = "${REMOTE_REGISTRY}:latest"
 
         // Docker
         LOCAL_IMG_TAG = "localhost/taskit:${BUILD_NUMBER}"
@@ -59,29 +56,29 @@ pipeline {
             }
         }
 
-        // stage('Tag') {
-        //     steps {
-        //         echo 'Tagging docker image ...'
+        stage('Tag') {
+            steps {
+                echo 'Tagging docker image ...'
 
-        //         sh 'docker tag "${LOCAL_IMG_TAG}" "${REMOTE_IMG_TAG}"'
+                sh """
+                    docker tag ${LOCAL_IMG_TAG} ${REMOTE_IMG_TAG}
+                    docker tag ${LOCAL_IMG_TAG} ${REMOTE_IMG_LTS_TAG}
+                """
+            }
+        }
 
-        //         sh 'docker tag "${LOCAL_IMG_TAG}" "${REMOTE_IMG_LTS_TAG}"'
-        //     }
-        // }
+        stage('Push') {
+            steps {
+                echo 'Pushing image to registry'
 
-        // stage('Push') {
-        //     steps {
-        //         sh '''
-        //             docker login "${REGISTRY}" -u "${REGISTRY_CRED_USR}" -p "${REGISTRY_CRED_PSW}"
-        //         '''
-
-    //         sh '''
-    //             docker push "${REMOTE_IMG_TAG}"
-    //             docker push "${REMOTE_IMG_LTS_TAG}"
-    //             docker logout "${REGISTRY}"
-    //         '''
-    //     }
-    // }
+                sh """
+                    aws ecr get-login-password --region eu-central-1 | \
+                    docker login --username AWS --password-stdin ${REMOTE_REGISTRY}
+                    docker push ${REMOTE_IMG_TAG}
+                    docker push ${REMOTE_IMG_LTS_TAG}
+                """
+            }
+        }
     }
 
     post {
@@ -91,10 +88,10 @@ pipeline {
                 export NGINX_NET=${TEST_NET}
                 docker compose down -v
                 docker rmi ${LOCAL_IMG_TAG}
+                docker rmi "${REMOTE_IMG_TAG}"
+                docker rmi "${REMOTE_IMG_LTS_TAG}"
+                docker logout "${REGISTRY}"
             """
-            // docker rmi "${REMOTE_IMG_TAG}"
-            // docker rmi "${REMOTE_IMG_LTS_TAG}"
-            // docker logout "${REGISTRY}"
             cleanWs()
         }
     }
