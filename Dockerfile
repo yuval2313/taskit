@@ -8,8 +8,8 @@ WORKDIR /flask-app
 RUN pip install pipenv
 
 # Install python dependencies in /.venv
-COPY flask-backend/Pipfile .
-COPY flask-backend/Pipfile.lock .
+COPY Pipfile .
+COPY Pipfile.lock .
 ENV PIPENV_VENV_IN_PROJECT=1 
 RUN pipenv install --deploy
 
@@ -35,17 +35,20 @@ RUN npm run flask-build
 
 FROM base AS runtime
 
-WORKDIR /app
+WORKDIR /taskit
 # Copy virtual env from python build stage
 COPY --from=python-build /flask-app/.venv /.venv
 ENV PATH="/.venv/bin:$PATH"
 
 # Copy flask application into container
-COPY flask-backend/ .
+COPY . .
 RUN chmod +x ./init.py
 
 # Copy static files from node build stage
 COPY --from=node-build /react-app/build/static ./app/static
+
+# Remove react application source code
+RUN rm -rf ./react-frontend/
 
 # Run the application
 ENTRYPOINT ["python3"]

@@ -21,9 +21,16 @@ find "$BUILD_PATH" -maxdepth 1 -type f -exec mv {} "$BUILD_PATH/static/" \;
 
 # Check if flask_dir is provided
 if [ -n "$flask_dir" ]; then
-  # Move static/ and templates/ to flask_dir
   echo "Moving files into flask application directory..."
+
+  # Check if static/ directory already exist in flask_dir
+  if [ -d "$flask_dir/static" ]; then
+    rm -r "$flask_dir/static" && log "Deleted existing static/ in $flask_dir"
+  fi
+
+  # Move static/ to flask_dir
   mv "$BUILD_PATH/static/" "$flask_dir/"
+  
   rmdir "$BUILD_PATH"
 else
   echo "No flask directory provided. Script ends."

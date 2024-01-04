@@ -1,7 +1,7 @@
 # Python
-**/.venv/
-**/*.pyc
-**/__pycache__/
+.venv/
+*.pyc
+__pycache__/
 
 # Node
 **/node_modules
@@ -17,8 +17,8 @@
 **/build/
 
 # React build
-flask-backend/static/
-flask-backend/templates/
+static/
+templates/
 
 # Config
 **/.env*
@@ -30,4 +30,4 @@ docker-compose*
 
 # Git
 .git
-**/.gitignore
+.gitignore
