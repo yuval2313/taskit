@@ -21,7 +21,7 @@ pipeline {
             steps {
                 echo 'Building docker image ...'
 
-                sh "docker build -t ${LOCAL_IMG_TAG} . --no-cache"
+                sh "docker build -t ${LOCAL_IMG_TAG} ."
             }
         }
 
@@ -84,7 +84,7 @@ pipeline {
 
                             // Devops
                             if (BRANCH_NAME =~ /^devops.*/) {
-                                remoteRegistry = '644435390668.dkr.ecr.eu-central-1.amazonaws.com/taskit-test' 
+                                remoteRegistry = '644435390668.dkr.ecr.eu-central-1.amazonaws.com/taskit-test'
                             }
 
                             // ECR
@@ -93,7 +93,6 @@ pipeline {
                             REMOTE_IMG_LTS_TAG = "${REMOTE_REGISTRY}:latest"
                         }
                     }
-
                 }
 
                 stage('Tag') {
@@ -118,11 +117,9 @@ pipeline {
                             docker push ${REMOTE_IMG_LTS_TAG}
                         """
                     }
-
                 }
-
             }
-            
+
             post {
                 always {
                     sh """
@@ -134,7 +131,6 @@ pipeline {
                 }
             }
         }
-
     }
 
     post {
