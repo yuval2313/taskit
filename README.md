@@ -1,6 +1,6 @@
 # Task-it
 
-Task-it is a simple task management / post-it demo application.
+Task-it is a simple task management / post-it demo application.  
 It consists of a a REST API built with Flask for performing operations on tasks and a user interface built with React.
 
 ---
@@ -40,7 +40,7 @@ Set up a PostgreSQL database and expose it on your local machine, configure the 
 
 ##### 2) Run Migrations
 
-The app utilizes the `flask-migrate` library to manage and run migrations - generating the database schema for Task-it.
+The app utilizes the `flask-migrate` library to manage and run migrations - generating the database schema for Task-it.  
 Once the database is up and running and the application has been configured to connect to it appropriately, simply execute the migrations against it:
 
 ```sh
@@ -108,7 +108,7 @@ You may package the static files within the Flask application and serve them dir
 
 For convenience use the custom `flask-build` npm script which compiles the files into the `react-build/` directory and reorganizes them so the flask application knows how to serve them.
 
-You may optionally pass in the location in which the `react-build/` directory should end up, which is inside the `app/` directory.
+You may optionally pass in the location in which the `react-build/` directory should end up, which is inside the `app/` directory.  
 Be sure to set appropriate permissions to be able to run the custom script.
 
 ```sh
@@ -119,12 +119,12 @@ npm run flask-build ../app
 
 The built react application should end up like so:
 
-taskit/
-├── app/
-├───└──**_react-build/_**
-├───────├── **_static/_**
-├───────└── **_index.html_**
-├── react-app/
+taskit/  
+├── app/  
+├───└──**react-build/**  
+├───────├── **static/**  
+├───────└── **index.html**  
+└── react-app/  
 
 ##### 3) Serve from Nginx
 
@@ -134,9 +134,9 @@ The best solution is to package and serve static files from a reverse proxy such
 
 The configuration file `nginx/conf.d/taskit.conf` is set up so that it can serve the contents of the compiled `react-build/` directory from within a directory called `app/` at the root of the machine running Nginx.
 
-app/
-├── **_static/_**
-└── **_index.html_**
+app/  
+├── **static/**  
+└── **index.html**  
 
 The `docker-compose.yml` is already set up to build an Nginx image with a baked in configuration, and to obtain the static files from the application container using named volumes.
 
@@ -168,9 +168,9 @@ taskit
 
 ### Docker Compose
 
-One may simply initialize the entire application using the `docker-compose.yml` at the root directory.
-This will utilize the `Dockerfile` to build a container image ready to serve the application.
-It will also front the application using an Nginx container as a reverse-proxy, and take care of initializing the database as well as running migrations against it.
+One may simply initialize the entire application using the `docker-compose.yml` at the root directory.  
+This will utilize the `Dockerfile` to build a container image ready to serve the application.  
+It will also front the application using an Nginx container as a reverse-proxy, and take care of initializing the database as well as running migrations against it.  
 
 ```sh
 docker compose up
