@@ -15,11 +15,7 @@ htmlcov/
 # Compiled
 dist/
 build/
-*.egg-info/
-
-# React build
-static/
-templates/
+react-build/
 
 # Config
 .env*

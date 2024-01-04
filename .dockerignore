@@ -16,12 +16,18 @@
 **/dist/
 **/build/
 
-# React build
-flask-backend/static/
-flask-backend/templates/
-
 # Config
 **/.env*
+
+# Nginx
+nginx/
+
+# Docs
+docs/
+README.md
+
+# CI
+Jenkinsfile
 
 # Docker
 .dockerignore
@@ -30,4 +36,4 @@ docker-compose*
 
 # Git
 .git
-**/.gitignore
+.gitignore
