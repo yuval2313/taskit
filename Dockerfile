@@ -20,12 +20,12 @@ FROM node:20-alpine as node-build
 WORKDIR /react-app
 
 # Install node dependencies
-COPY react-frontend/package.json .
-COPY react-frontend/package-lock.json .
+COPY react-app/package.json .
+COPY react-app/package-lock.json .
 RUN npm install
 
 # Copy application code
-COPY react-frontend/ .
+COPY react-app/ .
 RUN chmod +x ./flask-build.sh
 
 # Compile production build for flask application
@@ -48,7 +48,7 @@ RUN chmod +x ./init.py
 COPY --from=node-build /react-app/react-build ./app/react-build
 
 # Remove react application source code
-RUN rm -rf ./react-frontend/
+RUN rm -rf ./react-app/
 
 # Run the application
 ENTRYPOINT ["python3"]
