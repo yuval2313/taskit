@@ -16,10 +16,6 @@ __pycache__/
 **/dist/
 **/build/
 
-# React build
-static/
-templates/
-
 # Config
 **/.env*
 

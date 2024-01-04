@@ -45,7 +45,7 @@ COPY . .
 RUN chmod +x ./init.py
 
 # Copy static files from node build stage
-COPY --from=node-build /react-app/build/static ./app/static
+COPY --from=node-build /react-app/react-build ./app/react-build
 
 # Remove react application source code
 RUN rm -rf ./react-frontend/
