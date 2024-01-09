@@ -17,6 +17,25 @@ pipeline {
     }
 
     stages {
+        stage('Environment variable configuration') {
+            steps {
+                script {
+                    // main
+                    def remoteRegistry = '644435390668.dkr.ecr.eu-central-1.amazonaws.com/taskit'
+
+                    // devops
+                    if (BRANCH_NAME =~ /^devops.*/) {
+                        remoteRegistry = '644435390668.dkr.ecr.eu-central-1.amazonaws.com/taskit-test'
+                    }
+
+                    // ECR
+                    REMOTE_REGISTRY = "${remoteRegistry}"
+                    REMOTE_IMG_TAG = "${REMOTE_REGISTRY}:${BUILD_NUMBER}"
+                    REMOTE_IMG_LTS_TAG = "${REMOTE_REGISTRY}:latest"
+                }
+            }
+        }
+
         stage('Build') {
             steps {
                 echo 'Building docker image ...'
@@ -76,25 +95,6 @@ pipeline {
             }
 
             stages {
-                stage('Environment variable configuration') {
-                    steps {
-                        script {
-                            // main
-                            def remoteRegistry = '644435390668.dkr.ecr.eu-central-1.amazonaws.com/taskit'
-
-                            // Devops
-                            if (BRANCH_NAME =~ /^devops.*/) {
-                                remoteRegistry = '644435390668.dkr.ecr.eu-central-1.amazonaws.com/taskit-test'
-                            }
-
-                            // ECR
-                            REMOTE_REGISTRY = "${remoteRegistry}"
-                            REMOTE_IMG_TAG = "${REMOTE_REGISTRY}:${BUILD_NUMBER}"
-                            REMOTE_IMG_LTS_TAG = "${REMOTE_REGISTRY}:latest"
-                        }
-                    }
-                }
-
                 stage('Tag') {
                     steps {
                         echo 'Tagging docker image ...'
@@ -128,6 +128,45 @@ pipeline {
                         docker rmi "${REMOTE_IMG_LTS_TAG}"
                         docker logout ${REMOTE_REGISTRY}
                     """
+                }
+            }
+        }
+
+        stage('Deploy') {
+            when {
+                branch 'main'
+            }
+
+            environment {
+                GITOPS_REPO_CRED_ID = 'taskit-gitops-github-cred'
+                GITOPS_REPO_URL = 'git@github.com:yuval2313/taskit-gitops.git'
+            }
+
+            stages {
+                stage('Checkout GitOps Repo') {
+                    steps {
+                        checkout scm: scmGit(
+                            branches: [[name: '*/main']],
+                            userRemoteConfigs: [[credentialsId: GITOPS_REPO_CRED_ID, url: GITOPS_REPO_URL]]
+                        )
+                    }
+                }
+
+                stage('Modify Image Tag') {
+                    steps {
+                        dir('taskit') {
+                            yq eval -i '.taskit.image = "${REMOTE_IMG_TAG}"' values.yaml
+                        }
+                    }
+                }
+
+                stage('Push Changes') {
+                    steps { }
+                }
+            }
+
+            post {
+                always {
                 }
             }
         }
