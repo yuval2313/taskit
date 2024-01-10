@@ -8,6 +8,7 @@ pipeline {
     options {
         timestamps()
         timeout(time: 10, unit: 'MINUTES')
+        skipDefaultCheckout(true)
     }
 
     environment {
@@ -17,6 +18,17 @@ pipeline {
     }
 
     stages {
+        stage('Checkout SCM') {
+            steps {
+                // Clean before build
+                cleanWs()
+                // We need to explicitly checkout from SCM here
+                checkout scm
+
+                echo "Building ${env.JOB_NAME}..."
+            }
+        }
+
         stage('Environment variable configuration') {
             steps {
                 script {
@@ -150,6 +162,8 @@ pipeline {
             stages {
                 stage('Checkout GitOps Repo') {
                     steps {
+                        cleanWs()
+
                         checkout scm: scmGit(
                             branches: [[name: '*/main']],
                             userRemoteConfigs: [[credentialsId: GITOPS_REPO_CRED_ID, url: GITOPS_REPO_URL]]
@@ -165,7 +179,7 @@ pipeline {
                             sh 'ls -alF'
                             sh 'cat values.yaml'
 
-                            sh "yq eval -i \\'.taskit.image = ${REMOTE_IMG_TAG}\\' values.yaml"
+                            sh "yq -yi \\'.taskit.image = ${REMOTE_IMG_TAG}\\' values.yaml"
 
                             sh 'cat values.yaml'
                         }
