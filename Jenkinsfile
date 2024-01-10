@@ -26,6 +26,10 @@ pipeline {
         skipDefaultCheckout(true)
     }
 
+    environment {
+        REPO_CRED_ID = 'taskit-github-cred'
+    }
+
     stages {
         stage('Checkout SCM') {
             steps {
@@ -35,19 +39,6 @@ pipeline {
         }
 
         stage('Version calculation') {
-            when {
-                anyOf {
-                    branch 'main'
-                    expression {
-                        return BRANCH_NAME.startsWith('devops')
-                    }
-                }
-            }
-
-            environment {
-                REPO_CRED_ID = 'taskit-github-cred'
-            }
-
             steps {
                 script {
                     sshagent(credentials: ["${REPO_CRED_ID}"]) {
@@ -57,16 +48,16 @@ pipeline {
                         sh 'git fetch --tags'
                         def tags = sh(script: 'git tag -l --merge | sort -r -V', returnStdout: true).trim()
 
-                        def latestTag = findLatestTag(tags, RELEASE_VERSION)
+                        def latestTag = findLatestTag(tags, releaseVersion)
                         def calculatedVersion = ''
 
                         if (latestTag) {
                             /* groovylint-disable-next-line UnusedVariable */
                             def (major, minor, patch) = latestTag.tokenize('.')
                             patch = patch.toInteger() + 1
-                            calculatedVersion = "${RELEASE_VERSION}.${patch}"
+                            calculatedVersion = "${releaseVersion}.${patch}"
                         } else {
-                            calculatedVersion = "${RELEASE_VERSION}.1"
+                            calculatedVersion = "${releaseVersion}.1"
                         }
 
                         env.LATEST_TAG = latestTag
@@ -176,7 +167,7 @@ pipeline {
             }
 
             stages {
-                stage('Tag') {
+                stage('Tag Image') {
                     steps {
                         echo 'Tagging docker image ...'
 
@@ -187,7 +178,7 @@ pipeline {
                     }
                 }
 
-                stage('Push') {
+                stage('Push Image') {
                     steps {
                         echo 'Pushing image to registry'
 
@@ -197,6 +188,19 @@ pipeline {
                             docker push ${REMOTE_IMG_TAG}
                             docker push ${REMOTE_IMG_LTS_TAG}
                         """
+                    }
+                }
+
+                stage('Git Tag & Clean') {
+                    steps {
+                        sshagent(credentials: ["${REPO_CRED_ID}"]) {
+                            sh """
+                                git clean -f
+                                git reset --hard
+                                git tag ${CALCULATED_VERSION}
+                                git push origin ${CALCULATED_VERSION}
+                            """
+                        }
                     }
                 }
             }
@@ -258,7 +262,7 @@ pipeline {
                     steps {
                         sh """
                             git add .
-                            git commit -m 'Jenkins Deploy - Build #${BUILD_NUMBER}'
+                            git commit -m 'Jenkins Deploy - Build #${BUILD_NUMBER}, Version ${CALCULATED_VERSION}'
                             git push origin main
                         """
                     }
