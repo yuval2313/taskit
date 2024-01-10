@@ -160,7 +160,7 @@ pipeline {
                             sh 'ls -alF'
                             sh 'cat values.yml'
 
-                            yq eval - i '.taskit.image = "${REMOTE_IMG_TAG}"' values.yaml
+                            sh "yq eval - i '.taskit.image = ${REMOTE_IMG_TAG}' values.yaml"
 
                             sh 'cat values.yml'
                         }
