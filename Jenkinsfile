@@ -228,6 +228,7 @@ pipeline {
             }
 
             environment {
+                GITOPS_REPO_NAME = 'taskit-gitops'
                 GITOPS_REPO_CRED_ID = 'taskit-gitops-github-cred'
                 GITOPS_REPO_URL = 'git@github.com:yuval2313/taskit-gitops.git'
                 GIT_USER_NAME = 'Jenkins'
@@ -235,26 +236,27 @@ pipeline {
             }
 
             stages {
-                stage('Checkout GitOps Repo') {
+                stage('Clone GitOps Repo') {
                     steps {
                         cleanWs()
 
-                        checkout scm: scmGit(
-                            branches: [[name: '*/main']],
-                            userRemoteConfigs: [[credentialsId: GITOPS_REPO_CRED_ID, url: GITOPS_REPO_URL]]
-                        )
+                        sshagent(credentials: ["${GITOPS_REPO_CRED_ID}"]) {
+                            sh "git clone ${GITOPS_REPO_URL}"
 
-                        sh """
-                            git config user.name '${GIT_USER_NAME}'
-                            git config user.email '${GIT_USER_EMAIL}'
-                            git checkout main
-                        """
+                            dir(GITOPS_REPO_NAME) {
+                                sh """
+                                    git checkout main
+                                    git config user.name '${GIT_USER_NAME}'
+                                    git config user.email '${GIT_USER_EMAIL}'
+                                """
+                            }
+                        }
                     }
                 }
 
                 stage('Modify Image Tag') {
                     steps {
-                        dir('taskit') {
+                        dir("${GITOPS_REPO_NAME}/taskit") {
                             sh """
                                 yq -yi \'.taskit.image = \"${REMOTE_IMG_TAG}\"\' values.yaml
                             """
@@ -269,12 +271,13 @@ pipeline {
 
                     steps {
                         sshagent(credentials: ["${GITOPS_REPO_CRED_ID}"]) {
-                            sh """
-                                git add .
-                                git commit -m 'Jenkins Deploy - Build #${BUILD_NUMBER}, Version ${CALCULATED_VERSION}'
-                                git status
-                                git push origin main
-                            """
+                            dir(GITOPS_REPO_NAME) {
+                                sh """
+                                    git add .
+                                    git commit -m 'Jenkins Deploy - Build #${BUILD_NUMBER}, Version ${CALCULATED_VERSION}'
+                                    git push origin main
+                                """
+                            }
                         }
                     }
                 }
