@@ -271,7 +271,7 @@ pipeline {
 
                             git add .
                             git commit -m 'Jenkins Deploy - Build #${BUILD_NUMBER}, Version ${CALCULATED_VERSION}'
-                            git push origin main
+                            git push -u origin main
                         """
                     }
                 }
