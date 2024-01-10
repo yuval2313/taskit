@@ -179,7 +179,9 @@ pipeline {
                             sh 'ls -alF'
                             sh 'cat values.yaml'
 
-                            sh "yq -yi \\'.taskit.image = ${REMOTE_IMG_TAG}\\' values.yaml"
+                            sh """
+                                yq -yi '.taskit.image = \\"${REMOTE_IMAGE_TAG}\\"'
+                            """
 
                             sh 'cat values.yaml'
                         }
@@ -195,6 +197,12 @@ pipeline {
                 //         """
                 //     }
                 // }
+            }
+
+            post {
+                always {
+                    cleanWs(deleteDirs: true)
+                }
             }
         }
     }
