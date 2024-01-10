@@ -177,7 +177,7 @@ pipeline {
                             sh 'cat values.yaml'
 
                             sh """
-                                yq -yi '.taskit.image = \\"${REMOTE_IMG_TAG}\\"'
+                                yq -yi '.taskit.image = \\"${REMOTE_IMG_TAG}\\" values.yaml'
                             """
 
                             sh 'cat values.yaml'
