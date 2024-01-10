@@ -230,6 +230,8 @@ pipeline {
             environment {
                 GITOPS_REPO_CRED_ID = 'taskit-gitops-github-cred'
                 GITOPS_REPO_URL = 'git@github.com:yuval2313/taskit-gitops.git'
+                GIT_USER_NAME = 'Jenkins'
+                GIT_USER_EMAIL = 'lyuval1210@gmail.com'
             }
 
             stages {
@@ -241,6 +243,12 @@ pipeline {
                             branches: [[name: '*/main']],
                             userRemoteConfigs: [[credentialsId: GITOPS_REPO_CRED_ID, url: GITOPS_REPO_URL]]
                         )
+
+                        sh """
+                            git config user.name '${GIT_USER_NAME}'
+                            git config user.email '${GIT_USER_EMAIL}'
+                            git checkout main
+                        """
                     }
                 }
 
@@ -260,11 +268,14 @@ pipeline {
                     }
 
                     steps {
-                        sh """
-                            git add .
-                            git commit -m 'Jenkins Deploy - Build #${BUILD_NUMBER}, Version ${CALCULATED_VERSION}'
-                            git push origin main
-                        """
+                        sshagent(credentials: ["${GITOPS_REPO_CRED_ID}"]) {
+                            sh """
+                                git add .
+                                git commit -m 'Jenkins Deploy - Build #${BUILD_NUMBER}, Version ${CALCULATED_VERSION}'
+                                git status
+                                git push origin main
+                            """
+                        }
                     }
                 }
             }
