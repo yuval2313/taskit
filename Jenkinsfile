@@ -168,19 +168,16 @@ pipeline {
                             branches: [[name: '*/main']],
                             userRemoteConfigs: [[credentialsId: GITOPS_REPO_CRED_ID, url: GITOPS_REPO_URL]]
                         )
-
-                        sh 'ls -alF'
                     }
                 }
 
                 stage('Modify Image Tag') {
                     steps {
                         dir('taskit') {
-                            sh 'ls -alF'
                             sh 'cat values.yaml'
 
                             sh """
-                                yq -yi '.taskit.image = \\"${REMOTE_IMAGE_TAG}\\"'
+                                yq -yi '.taskit.image = \\"${REMOTE_IMG_TAG}\\"'
                             """
 
                             sh 'cat values.yaml'
@@ -202,6 +199,12 @@ pipeline {
             post {
                 always {
                     cleanWs(deleteDirs: true)
+                    sh '''
+                        docker image prune -af
+                        docker volume prune -af
+                        docker container prune -f
+                        docker network prune -f
+                    '''
                 }
             }
         }
