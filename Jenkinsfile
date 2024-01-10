@@ -265,7 +265,7 @@ pipeline {
                     }
 
                     steps {
-                        sshagent(credentials: ["${REPO_CRED_ID}"]) {
+                        sshagent(credentials: ["${GITOPS_REPO_CRED_ID}"]) {
                             sh """
                                 git config user.name '${GIT_USER_NAME}'
                                 git config user.email '${GIT_USER_EMAIL}'
