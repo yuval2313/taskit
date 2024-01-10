@@ -269,10 +269,11 @@ pipeline {
                             sh """
                                 git config user.name '${GIT_USER_NAME}'
                                 git config user.email '${GIT_USER_EMAIL}'
-                                git fetch --all
 
                                 git add .
                                 git commit -m 'Jenkins Deploy - Build #${BUILD_NUMBER}, Version ${CALCULATED_VERSION}'
+
+                                git remote add origin ${GITOPS_REPO_URL}
                                 git push -u origin main
                             """
                         }
