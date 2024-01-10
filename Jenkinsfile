@@ -21,7 +21,7 @@ pipeline {
         stage('Checkout SCM') {
             steps {
                 // Clean before build
-                cleanWs()
+                cleanWs(deleteDirs: true)
                 // We need to explicitly checkout from SCM here
                 checkout scm
 
@@ -162,7 +162,7 @@ pipeline {
             stages {
                 stage('Checkout GitOps Repo') {
                     steps {
-                        cleanWs()
+                        cleanWs(deleteDirs: true)
 
                         checkout scm: scmGit(
                             branches: [[name: '*/main']],
@@ -201,7 +201,7 @@ pipeline {
 
     post {
         always {
-            cleanWs()
+            cleanWs(deleteDirs: true)
         }
     }
 }
