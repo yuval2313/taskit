@@ -26,40 +26,11 @@ pipeline {
         skipDefaultCheckout(true)
     }
 
-    environment {
-        // Docker
-        LOCAL_IMG_TAG = "localhost/taskit:${BUILD_NUMBER}"
-        TEST_NET = "taskit-nginx-net-${BUILD_NUMBER}"
-    }
-
     stages {
         stage('Checkout SCM') {
             steps {
-                // Clean before build
                 cleanWs()
-                // We need to explicitly checkout from SCM here
                 checkout scm
-
-                echo "Building ${env.JOB_NAME}..."
-            }
-        }
-
-        stage('Environment variable configuration') {
-            steps {
-                script {
-                    // main
-                    def remoteRegistry = '644435390668.dkr.ecr.eu-central-1.amazonaws.com/taskit'
-
-                    // devops
-                    if (BRANCH_NAME =~ /^devops.*/) {
-                        remoteRegistry = '644435390668.dkr.ecr.eu-central-1.amazonaws.com/taskit-test'
-                    }
-
-                    // ECR
-                    REMOTE_REGISTRY = "${remoteRegistry}"
-                    REMOTE_IMG_TAG = "${REMOTE_REGISTRY}:${BUILD_NUMBER}"
-                    REMOTE_IMG_LTS_TAG = "${REMOTE_REGISTRY}:latest"
-                }
             }
         }
 
@@ -80,28 +51,69 @@ pipeline {
             steps {
                 script {
                     sshagent(credentials: ["${REPO_CRED_ID}"]) {
-                        env.RELEASE_VERSION = sh(script: 'cat version.txt', returnStdout: true).trim()
+                        def releaseVersion = sh(script: 'cat version.txt', returnStdout: true).trim()
 
                         // Get all tags
                         sh 'git fetch --tags'
                         def tags = sh(script: 'git tag -l --merge | sort -r -V', returnStdout: true).trim()
 
                         def latestTag = findLatestTag(tags, RELEASE_VERSION)
+                        def calculatedVersion = ''
 
                         if (latestTag) {
                             /* groovylint-disable-next-line UnusedVariable */
                             def (major, minor, patch) = latestTag.tokenize('.')
                             patch = patch.toInteger() + 1
-                            env.CALCULATED_VERSION = "${RELEASE_VERSION}.${patch}"
+                            calculatedVersion = "${RELEASE_VERSION}.${patch}"
                         } else {
-                            env.CALCULATED_VERSION = "${RELEASE_VERSION}.1"
+                            calculatedVersion = "${RELEASE_VERSION}.1"
                         }
 
-                        echo "LATEST_TAG: ${latestTag}"
-                        echo "RELEASE_VERSION: ${RELEASE_VERSION}"
-                        echo "CALCULATED_VERSION: ${CALCULATED_VERSION}"
+                        env.LATEST_TAG = latestTag
+                        env.RELEASE_VERSION = releaseVersion
+                        env.CALCULATED_VERSION = calculatedVersion
                     }
                 }
+            }
+        }
+
+        stage('Environment variable configuration') {
+            steps {
+                script {
+                    // main
+                    def remoteRegistry = '644435390668.dkr.ecr.eu-central-1.amazonaws.com/taskit'
+
+                    // devops
+                    if (BRANCH_NAME =~ /^devops.*/) {
+                        remoteRegistry = '644435390668.dkr.ecr.eu-central-1.amazonaws.com/taskit-test'
+                    }
+
+                    // Remote
+                    REMOTE_REGISTRY = "${remoteRegistry}"
+                    REMOTE_IMG_TAG = "${REMOTE_REGISTRY}:${CALCULATED_VERSION}"
+                    REMOTE_IMG_LTS_TAG = "${REMOTE_REGISTRY}:latest"
+
+                    // Local
+                    LOCAL_IMG_TAG = "localhost/taskit:${CALCULATED_VERSION}"
+                    TEST_NET = "taskit-nginx-net-${CALCULATED_VERSION}"
+                }
+            }
+        }
+
+        stage('Debug') {
+            steps {
+                echo '---------------DEBUG----------------------'
+
+                echo "LATEST_TAG: ${LATEST_TAG}"
+                echo "RELEASE_VERSION: ${RELEASE_VERSION}"
+                echo "CALCULATED_VERSION: ${CALCULATED_VERSION}"
+                echo "REMOTE_REGISTRY: ${REMOTE_REGISTRY}"
+                echo "REMOTE_IMG_TAG: ${REMOTE_IMG_TAG}"
+                echo "REMOTE_IMG_LTS_TAG: ${REMOTE_IMG_LTS_TAG}"
+                echo "LOCAL_IMG_TAG: ${LOCAL_IMG_TAG}"
+                echo "TEST_NET: ${TEST_NET}"
+
+                echo '---------------DEBUG----------------------'
             }
         }
 
