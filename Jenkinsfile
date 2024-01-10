@@ -134,7 +134,12 @@ pipeline {
 
         stage('Deploy') {
             when {
-                branch 'main'
+                anyOf {
+                    branch 'main'
+                    expression {
+                        return BRANCH_NAME.startsWith('devops')
+                    }
+                }
             }
 
             environment {
@@ -158,11 +163,11 @@ pipeline {
                     steps {
                         dir('taskit') {
                             sh 'ls -alF'
-                            sh 'cat values.yml'
+                            sh 'cat values.yaml'
 
-                            sh "yq eval - i '.taskit.image = ${REMOTE_IMG_TAG}' values.yaml"
+                            sh "yq eval -i \\'.taskit.image = ${REMOTE_IMG_TAG}\\' values.yaml"
 
-                            sh 'cat values.yml'
+                            sh 'cat values.yaml'
                         }
                     }
                 }
