@@ -177,7 +177,7 @@ pipeline {
                             sh 'cat values.yaml'
 
                             sh """
-                                yq -yi '.taskit.image = \\"${REMOTE_IMG_TAG}\\" values.yaml'
+                                yq -yi \'.taskit.image = \"${REMOTE_IMG_TAG}\" values.yaml\'
                             """
 
                             sh 'cat values.yaml'
@@ -199,12 +199,6 @@ pipeline {
             post {
                 always {
                     cleanWs(deleteDirs: true)
-                    sh '''
-                        docker image prune -af
-                        docker volume prune -af
-                        docker container prune -f
-                        docker network prune -f
-                    '''
                 }
             }
         }
@@ -213,6 +207,12 @@ pipeline {
     post {
         always {
             cleanWs(deleteDirs: true)
+            sh '''
+                docker image prune -af
+                docker volume prune -af
+                docker container prune -f
+                docker network prune -f
+            '''
         }
     }
 }
