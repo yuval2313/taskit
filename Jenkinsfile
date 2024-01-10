@@ -1,3 +1,18 @@
+def findLatestTag(tags, releaseVersion) {
+    def tagArray = tags.split('\n')
+    def latestTag = null
+
+    // Iterate through the tags to find a tag starting with releaseVersion
+    for (tag in tagArray) {
+        if (tag.startsWith(releaseVersion)) {
+            latestTag = tag
+            break
+        }
+    }
+
+    return latestTag // returns latestTag variable
+}
+
 pipeline {
     agent any
 
@@ -21,7 +36,7 @@ pipeline {
         stage('Checkout SCM') {
             steps {
                 // Clean before build
-                cleanWs(deleteDirs: true)
+                cleanWs()
                 // We need to explicitly checkout from SCM here
                 checkout scm
 
@@ -44,6 +59,48 @@ pipeline {
                     REMOTE_REGISTRY = "${remoteRegistry}"
                     REMOTE_IMG_TAG = "${REMOTE_REGISTRY}:${BUILD_NUMBER}"
                     REMOTE_IMG_LTS_TAG = "${REMOTE_REGISTRY}:latest"
+                }
+            }
+        }
+
+        stage('Version calculation') {
+            when {
+                anyOf {
+                    branch 'main'
+                    expression {
+                        return BRANCH_NAME.startsWith('devops')
+                    }
+                }
+            }
+
+            environment {
+                REPO_CRED_ID = 'taskit-github-cred'
+            }
+
+            steps {
+                script {
+                    sshagent(credentials: ["${REPO_CRED_ID}"]) {
+                        env.RELEASE_VERSION = sh(script: 'cat version.txt', returnStdout: true).trim()
+
+                        // Get all tags
+                        sh 'git fetch --tags'
+                        def tags = sh(script: 'git tag -l --merge | sort -r -V', returnStdout: true).trim()
+
+                        def latestTag = findLatestTag(tags, RELEASE_VERSION)
+
+                        if (latestTag) {
+                            /* groovylint-disable-next-line UnusedVariable */
+                            def (major, minor, patch) = latestTag.tokenize('.')
+                            patch = patch.toInteger() + 1
+                            env.CALCULATED_VERSION = "${RELEASE_VERSION}.${patch}"
+                        } else {
+                            env.CALCULATED_VERSION = "${RELEASE_VERSION}.1"
+                        }
+
+                        echo "LATEST_TAG: ${latestTag}"
+                        echo "RELEASE_VERSION: ${RELEASE_VERSION}"
+                        echo "CALCULATED_VERSION: ${CALCULATED_VERSION}"
+                    }
                 }
             }
         }
@@ -162,7 +219,7 @@ pipeline {
             stages {
                 stage('Checkout GitOps Repo') {
                     steps {
-                        cleanWs(deleteDirs: true)
+                        cleanWs()
 
                         checkout scm: scmGit(
                             branches: [[name: '*/main']],
@@ -174,31 +231,31 @@ pipeline {
                 stage('Modify Image Tag') {
                     steps {
                         dir('taskit') {
-                            sh 'cat values.yaml'
-
                             sh """
                                 yq -yi \'.taskit.image = \"${REMOTE_IMG_TAG}\"\' values.yaml
                             """
-
-                            sh 'cat values.yaml'
                         }
                     }
                 }
 
-                // stage('Push Changes') {
-                //     steps {
-                //         sh """
-                //             git add .
-                //             git commit -m 'Jenkins Deploy - Build #${BUILD_NUMBER}'
-                //             git push origin main
-                //         """
-                //     }
-                // }
+                stage('Push Changes') {
+                    when {
+                        branch 'main'
+                    }
+
+                    steps {
+                        sh """
+                            git add .
+                            git commit -m 'Jenkins Deploy - Build #${BUILD_NUMBER}'
+                            git push origin main
+                        """
+                    }
+                }
             }
 
             post {
                 always {
-                    cleanWs(deleteDirs: true)
+                    cleanWs()
                 }
             }
         }
