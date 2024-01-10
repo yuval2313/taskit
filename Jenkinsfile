@@ -149,25 +149,33 @@ pipeline {
                             branches: [[name: '*/main']],
                             userRemoteConfigs: [[credentialsId: GITOPS_REPO_CRED_ID, url: GITOPS_REPO_URL]]
                         )
+
+                        sh 'ls -alF'
                     }
                 }
 
                 stage('Modify Image Tag') {
                     steps {
                         dir('taskit') {
-                            yq eval -i '.taskit.image = "${REMOTE_IMG_TAG}"' values.yaml
+                            sh 'ls -alF'
+                            sh 'cat values.yml'
+
+                            yq eval - i '.taskit.image = "${REMOTE_IMG_TAG}"' values.yaml
+
+                            sh 'cat values.yml'
                         }
                     }
                 }
 
-                stage('Push Changes') {
-                    steps { }
-                }
-            }
-
-            post {
-                always {
-                }
+                // stage('Push Changes') {
+                //     steps {
+                //         sh """
+                //             git add .
+                //             git commit -m 'Jenkins Deploy - Build #${BUILD_NUMBER}'
+                //             git push origin main
+                //         """
+                //     }
+                // }
             }
         }
     }
