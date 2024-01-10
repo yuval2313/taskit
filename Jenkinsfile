@@ -259,9 +259,18 @@ pipeline {
                         branch 'main'
                     }
 
+                    environment {
+                        GIT_USER_NAME = 'Jenkins'
+                        GIT_USER_EMAIL = 'lyuval1210@gmail.com'
+                    }
+
                     steps {
                         sh """
+                            git config user.name ${GIT_USER_NAME}
+                            git config user.email ${GIT_USER_EMAIL}
+
                             git add .
+
                             git commit -m 'Jenkins Deploy - Build #${BUILD_NUMBER}, Version ${CALCULATED_VERSION}'
                             git push origin main
                         """
