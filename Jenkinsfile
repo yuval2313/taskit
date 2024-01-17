@@ -57,7 +57,7 @@ pipeline {
                             patch = patch.toInteger() + 1
                             calculatedVersion = "${releaseVersion}.${patch}"
                         } else {
-                            calculatedVersion = "${releaseVersion}.1"
+                            calculatedVersion = "${releaseVersion}.0"
                         }
 
                         env.LATEST_TAG = latestTag
@@ -274,7 +274,7 @@ pipeline {
                             dir(GITOPS_REPO_NAME) {
                                 sh """
                                     git add .
-                                    git commit -m 'Jenkins Deploy - Build #${BUILD_NUMBER}, Version ${CALCULATED_VERSION}'
+                                    git commit -m 'Jenkins Deploy - Build No. ${BUILD_NUMBER}, Version ${CALCULATED_VERSION}'
                                     git push origin main
                                 """
                             }
