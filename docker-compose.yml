@@ -23,6 +23,7 @@ services:
       - backend_net
     environment:
       FLASK_ENV: "production"
+      LOG_LEVEL: "DEBUG"
       DB_HOST: "db"
       DB_USER: "${DB_USER:-dbuser}"
       DB_PASSWORD: "${DB_PASSWORD:-dbpass}"
