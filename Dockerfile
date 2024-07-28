@@ -15,7 +15,7 @@ RUN pipenv install --deploy
 
 ### ----------------------------------- ###
 
-FROM node:20-alpine as node-build
+FROM node:20-alpine AS node-build
 
 WORKDIR /react-app
 

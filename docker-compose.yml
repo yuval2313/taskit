@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
   nginx:
     build:
@@ -44,7 +42,7 @@ services:
           "--quiet",
           "--tries=1",
           "--timeout=10",
-          "http://localhost:5000/health",
+          "http://127.0.0.1:5000/health",
         ]
       interval: 5s
       timeout: 5s
@@ -99,7 +97,7 @@ services:
 
 networks:
   nginx_net:
-    name: "${NGINX_NET}"
+    name: "${NGINX_NET:-nginx_net}"
   frontend_net:
   backend_net:
 
